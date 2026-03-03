@@ -292,7 +292,7 @@ class WebSearchConfig(Base):
 class SmartWebConfig(Base):
     """Smart web tools configuration (AI-powered extraction like Claude Code)."""
 
-    enabled: bool = False  # Enable smart_web_fetch and smart_web_search tools
+    enabled: bool = False  # Explicitly enable (auto-enabled when Brave API key not available)
     extraction_model: str = ""  # Model for content extraction (empty = use default, recommend fast model like Haiku)
     max_chars: int = 50000  # Maximum characters to fetch from URLs
     cache_ttl: int = 900  # Cache TTL in seconds (default 15 minutes)

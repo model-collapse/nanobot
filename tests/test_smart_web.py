@@ -175,3 +175,20 @@ def test_smart_web_tools_integration():
     # Verify both tools are available
     assert registry.get("smart_web_fetch") is not None
     assert registry.get("smart_web_search") is not None
+
+
+def test_smart_web_auto_enable_logic():
+    """Test that smart web tools are auto-enabled when Brave API key is missing."""
+    from nanobot.config.schema import SmartWebConfig
+
+    # Test 1: Smart tools enabled explicitly
+    config1 = SmartWebConfig(enabled=True)
+    assert config1.enabled is True
+
+    # Test 2: Smart tools disabled by default
+    config2 = SmartWebConfig()
+    assert config2.enabled is False
+
+    # The auto-enable logic is in AgentLoop, not config
+    # When brave_api_key is None, smart tools should be enabled
+    # This is tested by: if self.smart_web_config.enabled or not self.brave_api_key

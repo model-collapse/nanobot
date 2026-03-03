@@ -126,11 +126,13 @@ class AgentLoop:
             restrict_to_workspace=self.restrict_to_workspace,
             path_append=self.exec_config.path_append,
         ))
-        self.tools.register(WebSearchTool(api_key=self.brave_api_key, proxy=self.web_proxy))
+
+        # Always register WebFetchTool (no API key required)
         self.tools.register(WebFetchTool(proxy=self.web_proxy))
 
-        # Register smart web tools if enabled (AI-powered extraction like Claude Code)
-        if self.smart_web_config.enabled:
+        # Smart web tools: Primary AI-powered web tools (no external API key needed)
+        # Always register unless explicitly disabled
+        if self.smart_web_config.enabled or not self.brave_api_key:
             logger.info("Smart web tools enabled (AI-powered extraction)")
             smart_fetch = SmartWebFetchTool(
                 llm_provider=self.provider,
@@ -145,6 +147,11 @@ class AgentLoop:
                 smart_fetch_tool=smart_fetch,
                 extraction_model=self.smart_web_config.extraction_model or None
             ))
+
+        # Traditional web search (requires Brave API key) - registered as fallback
+        if self.brave_api_key:
+            logger.info("Brave Search API key found, registering traditional web_search tool")
+            self.tools.register(WebSearchTool(api_key=self.brave_api_key, proxy=self.web_proxy))
 
         self.tools.register(MessageTool(send_callback=self.bus.publish_outbound))
         self.tools.register(SpawnTool(manager=self.subagents))

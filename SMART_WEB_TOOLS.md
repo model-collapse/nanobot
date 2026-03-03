@@ -13,6 +13,14 @@ Traditional web scraping returns raw HTML or markdown, which can be overwhelming
 
 This provides more focused, relevant responses similar to Claude Code's web capabilities.
 
+### Primary Web Tools (Auto-Enabled)
+
+**Smart web tools are now the primary web search/fetch tools in nanobot.** They are automatically enabled when:
+- No Brave Search API key is configured, OR
+- Explicitly enabled via config: `tools.web.smart.enabled: true`
+
+This means you get AI-powered web capabilities **out of the box** without needing external API keys. The traditional `web_search` tool (which requires a Brave API key) is only registered when you have an API key configured.
+
 ## Features
 
 ### SmartWebFetchTool
