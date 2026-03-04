@@ -286,12 +286,40 @@ class ClaudeCodeTool(Tool):
         except FileNotFoundError:
             return "Error: tmux is not installed or not in PATH"
 
-        # Step 2: Send the claude command to the shell
+        # Step 2: Unset CLAUDECODE variable to allow nested sessions
+        # This is necessary when nanobot runs inside Claude Code
+        try:
+            subprocess.run(
+                [
+                    "tmux", "-S", TMUX_SOCKET,
+                    "send-keys", "-t", f"{tmux_session_name}:0.0",
+                    "-l", "--", "unset CLAUDECODE",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            subprocess.run(
+                [
+                    "tmux", "-S", TMUX_SOCKET,
+                    "send-keys", "-t", f"{tmux_session_name}:0.0",
+                    "Enter",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except subprocess.TimeoutExpired:
+            return "Error: sending unset command to tmux timed out"
+        except FileNotFoundError:
+            return "Error: tmux is not installed or not in PATH"
+
+        # Step 3: Send the claude command to the shell
         claude_cmd = "claude"
         if message:
-            # Use --message for non-interactive prompt
+            # Pass message as direct argument (not --message flag)
             escaped = message.replace("'", "'\\''")
-            claude_cmd = f"claude --message '{escaped}'"
+            claude_cmd = f"claude '{escaped}'"
 
         try:
             # Send command as literal string
