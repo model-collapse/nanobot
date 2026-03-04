@@ -121,9 +121,18 @@ nanobot channels status
 
 **Tool System** (`nanobot/agent/tools/`)
 - Registry-based with dynamic tool registration
-- Built-in tools: filesystem (read/write/edit/list), shell (exec), web (search/fetch), message, cron, spawn (subagents)
+- Built-in tools: filesystem (read/write/edit/list), shell (exec), web (search/fetch), message, cron, spawn (subagents), claude_code
 - MCP tools auto-registered from configured servers
 - Tools implement: `to_schema()`, `validate_params()`, `execute()`
+
+**Claude Code Integration** (`nanobot/agent/tools/claude_code.py`)
+- Manages Claude Code (claude.ai/code) sessions inside tmux
+- Actions: `create`, `list`, `resume`, `status`, `archive`
+- Session metadata stored as JSON at `~/.nanobot/workspace/claude-code/sessions.json`
+- Session ID format: `cc-YYYYMMDD-HHMMSS-{random6}`
+- tmux sessions prefixed with `claude-` on the shared nanobot socket (`/tmp/nanobot-tmux-sockets/nanobot.sock`)
+- Implements `set_context(channel, chat_id)` for tracking session creator metadata
+- Requires `tmux` and `claude` binaries on PATH
 
 **Session Management** (`nanobot/session/manager.py`)
 - Conversations stored as JSONL files in workspace/sessions/
@@ -197,6 +206,7 @@ nanobot channels status
 - `nanobot/providers/registry.py` — Provider registry
 - `nanobot/session/manager.py` — Session persistence
 - `nanobot/agent/memory.py` — Memory consolidation
+- `nanobot/agent/tools/claude_code.py` — Claude Code session management
 
 ### Entry Points
 - `nanobot/cli/commands.py` — All CLI commands (typer app)

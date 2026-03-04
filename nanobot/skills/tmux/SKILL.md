@@ -119,3 +119,74 @@ tmux -S "$SOCKET" capture-pane -p -t agent-1 -S -500
 - `-T` timeout seconds (integer, default 15)
 - `-i` poll interval seconds (default 0.5)
 - `-l` history lines to search (integer, default 1000)
+
+## Managing Claude Code Sessions
+
+The `claude_code` tool provides a structured way to create and manage Claude Code (claude.ai/code) sessions inside tmux. It handles session lifecycle, metadata tracking, and tmux integration automatically.
+
+### Actions
+
+| Action | Required Params | Description |
+|--------|----------------|-------------|
+| `create` | `purpose`, `workspace_path` | Start a new Claude Code session in a tmux pane |
+| `list` | _(none)_ | List sessions, optionally filtered by `status` |
+| `resume` | `session_id` | Reattach to an existing session (supports fuzzy match) |
+| `status` | `session_id` | Check if a session is alive and capture recent output |
+| `archive` | `session_id` | Mark a session as archived (optionally kills tmux) |
+
+### Usage Examples
+
+Create a session to work on a project:
+```
+claude_code(action="create", purpose="Fix authentication bug", workspace_path="/home/user/myproject")
+```
+
+List all active sessions:
+```
+claude_code(action="list")
+claude_code(action="list", status="active")
+```
+
+Resume a previous session (exact ID or fuzzy match):
+```
+claude_code(action="resume", session_id="cc-20260303-102030-a1b2c3")
+claude_code(action="resume", session_id="auth")  # fuzzy match on purpose
+```
+
+Check session health and recent output:
+```
+claude_code(action="status", session_id="cc-20260303-102030-a1b2c3")
+```
+
+Archive a completed session:
+```
+claude_code(action="archive", session_id="cc-20260303-102030-a1b2c3")
+```
+
+### Integration with tmux Commands
+
+Claude Code sessions use the shared nanobot tmux socket. You can interact with them directly:
+
+```bash
+SOCKET="${NANOBOT_TMUX_SOCKET_DIR:-${TMPDIR:-/tmp}/nanobot-tmux-sockets}/nanobot.sock"
+
+# List all Claude Code sessions (prefixed with "claude-")
+tmux -S "$SOCKET" list-sessions | grep "^claude-"
+
+# Attach to a session for live viewing
+tmux -S "$SOCKET" attach -t claude-cc-20260303-102030-a1b2c3
+
+# Capture recent output
+tmux -S "$SOCKET" capture-pane -p -J -t claude-cc-20260303-102030-a1b2c3 -S -200
+
+# Send input to a running session
+tmux -S "$SOCKET" send-keys -t claude-cc-20260303-102030-a1b2c3 -l -- "help" Enter
+```
+
+### Tips
+
+- Session IDs follow the pattern `cc-YYYYMMDD-HHMMSS-{random6}` for easy sorting and identification
+- tmux session names are prefixed with `claude-` to distinguish them from other nanobot tmux sessions
+- Use `status` to check if a session is still alive before trying to `resume`
+- Archived sessions keep their metadata but the underlying tmux session may be killed
+- The `list` action sorts sessions by last-used time, most recent first
